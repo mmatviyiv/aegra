@@ -4,7 +4,7 @@ Caches the latest checkpoint values and per-task interrupts on the thread row
 so Thread responses (get/search) carry them like LangGraph Platform does.
 
 Revision ID: c5e9a2f1d7b3
-Revises: a3f7c1d9e2b4
+Revises: d2e3f4a5b6c7
 Create Date: 2026-09-27 00:00:00.000000
 
 """
@@ -16,7 +16,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "c5e9a2f1d7b3"
-down_revision = "a3f7c1d9e2b4"
+down_revision = "d2e3f4a5b6c7"
 branch_labels = None
 depends_on = None
 
