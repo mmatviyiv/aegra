@@ -187,16 +187,18 @@ def _serialize_thread(thread_orm: ThreadORM, default_metadata: dict[str, Any] | 
     )
 
 
-async def _refresh_thread_values(graph: Any, session: AsyncSession, thread_id: str, user: User) -> None:
+async def _refresh_thread_values(graph: Any, thread_id: str, user: User) -> None:
     """Re-cache the thread's latest values and interrupts after its state changed.
 
     Best-effort: the checkpoint is already written, so a failed refresh must not fail the request.
+    The checkpoint is read before a DB session is taken, so no pooled connection is held across it.
     """
     try:
         snapshot = await graph.aget_state(create_thread_config(thread_id, user))
         thread_values = thread_state_service.extract_thread_values(snapshot)
-        await set_thread_values(session, thread_id, thread_values, user_id=user.identity)
-        await session.commit()
+        async with _get_session_maker()() as session:
+            await set_thread_values(session, thread_id, thread_values, user_id=user.identity)
+            await session.commit()
     except Exception:
         logger.warning("Failed to refresh cached thread values", thread_id=thread_id, exc_info=True)
 
@@ -652,7 +654,7 @@ async def update_thread_state(
                 )
 
                 # Unbound graph: the request's checkpoint_id/ns must not pin the latest-state read.
-                await _refresh_thread_values(graph, session, thread_id, user)
+                await _refresh_thread_values(graph, thread_id, user)
 
                 return ThreadStateUpdateResponse(checkpoint=checkpoint_info)
 
