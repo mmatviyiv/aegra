@@ -133,7 +133,8 @@ class TestSessionReleasedBeforeCheckpointRead:
 
         assert isinstance(result, ThreadStateUpdateResponse)
         assert result.checkpoint["checkpoint_id"] == "cp-1"
-        assert closed_marker == [True]
+        # graph lookup + values refresh (#654): each session is closed, none spans a checkpoint read
+        assert closed_marker and all(closed_marker)
 
     @pytest.mark.asyncio
     async def test_get_thread_history_post_releases_session_before_aget_state_history(self) -> None:
